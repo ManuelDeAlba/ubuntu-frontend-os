@@ -65,6 +65,9 @@ let text = [
     "Type 'clear' to clear the terminal"
 ];
 
+let commandHistory = [];
+let commandIndex = 0;
+
 export function pwd() {
     return currentDirectory.getPath();
 }
@@ -148,6 +151,10 @@ export function execute(command){
     //TODO: Implement a function to parse the command and its arguments considering quotes
     let [ executedCommand, ...commandArguments ] = command.split(" ");
 
+    // Save the command in the history
+    commandHistory.push(command);
+    commandIndex = commandHistory.length;
+
     if(commands[executedCommand]){
         const result = commands[executedCommand](commandArguments);
 
@@ -167,6 +174,28 @@ export function changeUser(newUser="user"){
     user = newUser;
     text.push(`User changed to ${user}`);
     return "";
+}
+
+export function handleKeyDown(e){
+    if(commandHistory.length <= 0) return;
+    
+    const input = document.querySelector(".input");
+    
+    if(document.activeElement == input){
+        if(e.key === "ArrowUp"){
+            e.preventDefault();
+            if(commandIndex >= 0){
+                commandIndex = Math.max(0, commandIndex - 1);
+                input.value = commandHistory[commandIndex];
+            }
+        } else if (e.key === "ArrowDown"){
+            e.preventDefault();
+            if(commandIndex < commandHistory.length - 1){
+                commandIndex = Math.min(commandHistory.length - 1, commandIndex + 1);
+                input.value = commandHistory[commandIndex];
+            }
+        }
+    }
 }
 
 //? DEFAULT FOLDERS AND FILES

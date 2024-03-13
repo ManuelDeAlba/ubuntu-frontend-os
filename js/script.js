@@ -126,6 +126,10 @@ window.addEventListener('mouseup', e => {
     }
 })
 
+window.addEventListener("keydown", e => {
+    Terminal.handleKeyDown(e);
+})
+
 window.addEventListener("load", () => {
     const terminalWindow = document.querySelector(".terminal");
     terminalWindow.querySelector(".input-bar .pre-input").innerHTML = Terminal.getPreInput() + "$";
