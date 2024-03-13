@@ -21,6 +21,7 @@ body{
 .bar{
   position: absolute;
   bottom: 0;
+  z-index: 100;
   display: flex;
   justify-content: start;
   align-items: center;
@@ -61,6 +62,11 @@ body{
   }
 }
 
+.window{
+  &.active{
+    z-index: 100;
+  }
+}
 .top-bar{
   display: flex;
   justify-content: end;
@@ -71,7 +77,7 @@ body{
   color: #fff;
   cursor: move;
 
-  > * {
+  .tools > *, .actions > * {
     cursor: pointer;
   }
   

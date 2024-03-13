@@ -25,6 +25,15 @@ function actionOnSubmit(selector, callback) {
 }
 
 // Window actions
+actionOnClick(".window", (e) => {
+    const clickedWindow = e.target.closest(".window");
+
+    // Bring the window to the front
+    const windows = document.querySelectorAll(".window");
+    windows.forEach(w => w.classList.remove("active"));
+    clickedWindow.classList.add("active");
+})
+
 actionOnClick(".top-bar", (e) => {
     dragInfo.x = e.clientX;
     dragInfo.y = e.clientY;
