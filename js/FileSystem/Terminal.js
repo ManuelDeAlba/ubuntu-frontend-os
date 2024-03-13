@@ -156,6 +156,8 @@ export function touch(file){
         const name = segments.pop();
         const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
 
+        if(dir.children.find(node => node.name === name)) return `File ${name} already exists`;
+
         const node = new Node(name);
         dir.addNode(node);
         return `File ${name} created`;
@@ -171,6 +173,8 @@ export function mkdir(path){
         const segments = path.split("/");
         const name = segments.pop();
         const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+
+        if(dir.children.find(node => node.name === name)) return `Directory ${name} already exists`;
 
         const node = new Node(name, true);
         dir.addNode(node);
