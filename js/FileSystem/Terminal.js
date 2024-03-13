@@ -56,6 +56,11 @@ let commands = {
         text.push(mkdir(commandArguments[0]));
         return text;
     },
+    "rm": (commandArguments) => {
+        text.push(`${getPreInput()}: rm ${commandArguments[0] || ""}`);
+        text.push(rm(commandArguments[0]));
+        return text;
+    },
     "clear": () => {
         text = [];
         return text;
@@ -179,6 +184,26 @@ export function mkdir(path){
         const node = new Node(name, true);
         dir.addNode(node);
         return `Directory ${name} created`;
+    } catch(e){
+        return e.message;
+    }
+}
+
+export function rm(path){
+    if(!path) return "No specified file or directory";
+
+    try{
+        const segments = path.split("/");
+        const name = segments.pop();
+        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+
+        const node = dir.children.find(node => node.name === name);
+        if(node){
+            dir.children = dir.children.filter(node => node.name !== name);
+            return `${!node.isDir ? 'File' : 'Directory'} ${name} removed`;
+        } else {
+            return `No such file or directory: ${name}`;
+        }
     } catch(e){
         return e.message;
     }
