@@ -25,14 +25,15 @@ let commands = {
         text.push(`${pwd()}`);
         return text;
     },
-    "ls": () => {
-        text.push(`${getPreInput()}: ls`);
-        text.push(currentDirectory.getTree());
+    "ls": (commandArguments) => {
+        text.push(`${getPreInput()}: ls ${commandArguments[0] || ""}`);
+        text.push(ls(commandArguments[0]));
         return text;
     },
-    "cd": (commandArguments) => {       
+    "cd": (commandArguments) => {
         text.push(`${getPreInput()}: cd ${commandArguments[0] || ""}`);
-        cd(commandArguments[0]);
+        const res = cd(commandArguments[0]);
+        if(res) text.push(res);
         return text;
     },
     "cat": (commandArguments) => {
@@ -40,14 +41,19 @@ let commands = {
         text.push(cat(commandArguments[0]));
         return text;
     },
+    "write": (commandArguments) => {
+        text.push(`${getPreInput()}: write ${commandArguments[0] || ""} ${commandArguments[1] || ""}`);
+        text.push(write(commandArguments[0], commandArguments[1]));
+        return text;
+    },
     "touch": (commandArguments) => {
         text.push(`${getPreInput()}: touch ${commandArguments[0] || ""}`);
         text.push(touch(commandArguments[0]));
         return text;
     },
-    "write": (commandArguments) => {
-        text.push(`${getPreInput()}: write ${commandArguments[0] || ""} ${commandArguments[1] || ""}`);
-        text.push(write(commandArguments[0], commandArguments[1]));
+    "mkdir": (commandArguments) => {
+        text.push(`${getPreInput()}: mkdir ${commandArguments[0] || ""}`);
+        text.push(mkdir(commandArguments[0]));
         return text;
     },
     "clear": () => {
@@ -74,94 +80,104 @@ export function pwd() {
     return currentDirectory.getPath();
 }
 
+export function ls(path){
+    if(!path) return currentDirectory.getTree();
+
+    try{
+        const dir = getDirectoryFromPath(path);
+
+        return dir.getTree();
+    } catch(e){
+        return e.message;
+    }
+
+}
+
 export function cd(path) {
     if(!path){
         currentDirectory = rootFolder;
         return "";
     }
 
-    path.split("/").forEach(segment => {
-        if (segment === ".") return;
-        if (segment === "..") {
-            // If there is a parent, go to it
-            // Otherwise, stay in the same directory
-            if (currentDirectory.parent) {
-                currentDirectory = currentDirectory.parent;
-            }
-        } else{
-            // Search a node with the name of the segment
-            const node = currentDirectory.children.find(node => node.name === segment);
-            if (node && node.isDir) currentDirectory = node;
-            else {
-                text.push(`No such file or directory: ${segment}`);
-            }
-        }
-    })
-
+    try {
+        const dir = getDirectoryFromPath(path);
+        currentDirectory = dir;
+    } catch(e){
+        return e.message;
+    }
 }
 
 export function cat(path){
-    if(!path){
-        text.push("No specified file");
-        return "";
-    }
+    if(!path) return "No specified file";
 
-    const segments = path.split("/");
-    const file = segments.pop();
-    let aux = currentDirectory;
-
-    // Navigate to the directory
-    segments.forEach(segment => {
-        if (segment === ".") return;
-        if (segment === "..") {
-            // If there is a parent, navigate to it
-            // Otherwise, stay in the same directory
-            if (aux.parent) aux = aux.parent;
-        } else{
-            // Search a node with the name of the segment
-            const node = aux.children.find(node => node.name === segment);
-            if (node && node.isDir) aux = node;
-            else {
-                text.push(`No such file or directory: ${segment}`);
-            }
+    try{
+        // Get the file and the directory
+        const segments = path.split("/");
+        const file = segments.pop();
+        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+    
+        // Read the content of the file
+        const node = dir.children.find(node => node.name === file);
+        if(node && !node.isDir){
+            return node.getContent();
+        } else {
+            return `No such file: ${file || ""}`;
         }
-    })
+    } catch(e){
+        return e.message;
+    }
+}
 
-    // Read the content of the file
-    const node = aux.children.find(node => node.name === file);
-    if(node && !node.isDir) return node.getContent();
-    else {
-        text.push(`No such file: ${file || ""}`);
-        return "";
+export function write(path, content){
+    if(!path) return "No specified file";
+
+    try{
+        const segments = path.split("/");
+        const file = segments.pop();
+        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+
+        const node = dir.children.find(node => node.name === file);
+        if(node && !node.isDir){
+            node.addContent(content);
+            return `Content written to ${file}`;
+        } else {
+            return `No such file: ${file || ""}`;
+        }
+    } catch(e){
+        return e.message;
     }
 }
 
 export function touch(file){
-    if(!file){
-        text.push("No specified file");
-        return "";
-    }
+    if(!file) return "No specified file";
 
-    const node = new Node(file);
-    currentDirectory.addNode(node);
-    return `File ${file} created`;
+    try{
+        const segments = file.split("/");
+        const name = segments.pop();
+        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+
+        const node = new Node(name);
+        dir.addNode(node);
+        return `File ${name} created`;
+    } catch(e){
+        return e.message;
+    }
 }
 
-export function write(file, content){
-    if(!file){
-        text.push("No specified file");
-        return "";
-    }
+export function mkdir(path){
+    if(!path) return "No specified name";
 
-    const node = currentDirectory.children.find(node => node.name === file);
-    if(node && !node.isDir){
-        node.addContent(content);
-        return `Content written to ${file}`;
-    } else {
-        text.push(`No such file: ${file || ""}`);
-        return "";
-    }
+    try{
+        const segments = path.split("/");
+        const name = segments.pop();
+        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
 
+        const node = new Node(name, true);
+        dir.addNode(node);
+        return `Directory ${name} created`;
+    } catch(e){
+        return e.message;
+    }
 }
 
 export function execute(command){
@@ -183,14 +199,36 @@ export function execute(command){
     }
 }
 
+export function changeUser(newUser="user"){
+    user = newUser;
+    return `User changed to ${user}`;
+}
+
 export function getPreInput(){
     return `<span style="color: lightgreen;">${user}@ubuntu</span>:<span style="color: lightblue;">${pwd()}</span>`;
 }
 
-export function changeUser(newUser="user"){
-    user = newUser;
-    text.push(`User changed to ${user}`);
-    return "";
+export function getDirectoryFromPath(path){
+    const segments = path.split("/");
+    let aux = currentDirectory;
+
+    segments.forEach(segment => {
+        if (segment === ".") return;
+        if (segment === "..") {
+            // If there is a parent, navigate to it
+            // Otherwise, stay in the same directory
+            if (aux.parent) aux = aux.parent;
+        } else {
+            // Search a node with the name of the segment
+            const node = aux.children.find(node => node.name === segment);
+            if (node && node.isDir) aux = node;
+            else {
+                throw new Error(`No such file or directory: ${segment}`);
+            }
+        }
+    })
+
+    return aux;
 }
 
 export function handleKeyDown(e){
@@ -224,28 +262,3 @@ rootFolder.addNode(file);
 
 folder1.addNode(new Node("file2.txt"));
 folder1.addNode(new Node("folder2", true));
-
-//! TESTS
-// console.log("\n\n" + pwd());
-// currentDirectory.printTree();
-// cd("folder1");
-
-// console.log("\n\n" + pwd());
-// currentDirectory.printTree();
-// cd("folder2");
-
-// console.log("\n\n" + pwd());
-// currentDirectory.printTree();
-// cd("../..");
-
-// console.log("\n\n" + pwd());
-// currentDirectory.printTree();
-// cd("..");
-
-// console.log("\n\n" + pwd());
-// currentDirectory.printTree();
-// console.log('file.txt:\n' + cat("file.txt"));
-// cd("folder1/folder2");
-
-// console.log("\n\n" + pwd());
-// currentDirectory.printTree();
