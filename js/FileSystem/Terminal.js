@@ -72,13 +72,13 @@ export function pwd() {
     return currentDirectory.getPath();
 }
 
-export function cd(ruta) {
-    if(!ruta){
+export function cd(path) {
+    if(!path){
         currentDirectory = rootFolder;
         return "";
     }
 
-    ruta.split("/").forEach(segment => {
+    path.split("/").forEach(segment => {
         if (segment === ".") return;
         if (segment === "..") {
             // If there is a parent, go to it
@@ -99,6 +99,11 @@ export function cd(ruta) {
 }
 
 export function cat(path){
+    if(!path){
+        text.push("No specified file");
+        return "";
+    }
+
     const segments = path.split("/");
     const file = segments.pop();
     let aux = currentDirectory;
@@ -130,12 +135,22 @@ export function cat(path){
 }
 
 export function touch(file){
+    if(!file){
+        text.push("No specified file");
+        return "";
+    }
+
     const node = new Node(file);
     currentDirectory.addNode(node);
     return `File ${file} created`;
 }
 
 export function write(file, content){
+    if(!file){
+        text.push("No specified file");
+        return "";
+    }
+
     const node = currentDirectory.children.find(node => node.name === file);
     if(node && !node.isDir){
         node.addContent(content);
