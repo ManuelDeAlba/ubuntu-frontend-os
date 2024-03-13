@@ -7,7 +7,6 @@ export let currentDirectory = rootFolder;
 let commands = {
     "help": () => {
         text.push(`
-            ${getPreInput()}: help<br>
             Commands:<br>
             - pwd: Print the current working directory<br>
             - ls: List the contents of the current directory<br>
@@ -24,44 +23,36 @@ let commands = {
         return text;
     },
     "pwd": () => {
-        text.push(`${getPreInput()}: pwd`);
         text.push(`${pwd()}`);
         return text;
     },
     "ls": (commandArguments) => {
-        text.push(`${getPreInput()}: ls ${commandArguments[0] || ""}`);
-        text.push(ls(commandArguments[0]));
+        text.push(ls(commandArguments));
         return text;
     },
     "cd": (commandArguments) => {
-        text.push(`${getPreInput()}: cd ${commandArguments[0] || ""}`);
         const res = cd(commandArguments[0]);
         if(res) text.push(res);
         return text;
     },
     "cat": (commandArguments) => {
-        text.push(`${getPreInput()}: cat ${commandArguments[0] || ""}`);
-        text.push(cat(commandArguments[0]));
+        text.push(cat(commandArguments));
         return text;
     },
     "write": (commandArguments) => {
-        text.push(`${getPreInput()}: write ${commandArguments[0] || ""} ${commandArguments[1] || ""}`);
-        text.push(write(commandArguments[0], commandArguments[1]));
+        text.push(write(commandArguments));
         return text;
     },
     "touch": (commandArguments) => {
-        text.push(`${getPreInput()}: touch ${commandArguments[0] || ""}`);
-        text.push(touch(commandArguments[0]));
+        text.push(touch(commandArguments));
         return text;
     },
     "mkdir": (commandArguments) => {
-        text.push(`${getPreInput()}: mkdir ${commandArguments[0] || ""}`);
-        text.push(mkdir(commandArguments[0]));
+        text.push(mkdir(commandArguments));
         return text;
     },
     "rm": (commandArguments) => {
-        text.push(`${getPreInput()}: rm ${commandArguments[0] || ""}`);
-        text.push(rm(commandArguments[0]));
+        text.push(rm(commandArguments));
         return text;
     },
     "clear": () => {
@@ -69,13 +60,11 @@ let commands = {
         return text;
     },
     "history": () => {
-        text.push(`${getPreInput()}: history`);
         text.push(history());
         return text;
     },
     "user": (commandArguments) => {
-        text.push(`${getPreInput()}: user ${commandArguments[0] || ""}`);
-        text.push(changeUser(commandArguments[0]));
+        text.push(changeUser(commandArguments));
         return text;
     }
 }
@@ -93,13 +82,21 @@ export function pwd() {
     return currentDirectory.getPath();
 }
 
-export function ls(path){
-    if(!path) return currentDirectory.getTree();
+export function ls(paths){
+    if(!paths.length) return currentDirectory.getTree();
 
     try{
-        const dir = getDirectoryFromPath(path);
+        const results = paths.map(path => {
+            const dir = getDirectoryFromPath(path);
 
-        return dir.getTree();
+            if(paths.length == 1){
+                return dir.getTree();
+            } else {
+                return `${path}:<br>${dir.getTree()}`;
+            }
+        });
+
+        return results.join("<br>");
     } catch(e){
         return e.message;
     }
@@ -120,28 +117,34 @@ export function cd(path) {
     }
 }
 
-export function cat(path){
-    if(!path) return "No specified file";
+export function cat(paths){
+    if(!paths.length) return "No specified file";
 
     try{
-        // Get the file and the directory
-        const segments = path.split("/");
-        const file = segments.pop();
-        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
-    
-        // Read the content of the file
-        const node = dir.children.find(node => node.name === file);
-        if(node && !node.isDir){
-            return node.getContent();
-        } else {
-            return `No such file: ${file || ""}`;
-        }
+        const results = paths.map(path => {
+            // Get the file and the directory
+            const segments = path.split("/");
+            const file = segments.pop();
+            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+        
+            // Read the content of the file
+            const node = dir.children.find(node => node.name === file);
+            if(node && !node.isDir){
+                return node.getContent();
+            } else {
+                return `No such file: ${file || ""}`;
+            }
+        });
+
+        return results.join("<br>");
     } catch(e){
         return e.message;
     }
 }
 
-export function write(path, content){
+export function write(commandArguments){
+    let [ path, content ] = commandArguments;
+    
     if(!path) return "No specified file";
 
     try{
@@ -161,57 +164,69 @@ export function write(path, content){
     }
 }
 
-export function touch(file){
-    if(!file) return "No specified file";
+export function touch(files){
+    if(!files.length) return "No specified file";
 
     try{
-        const segments = file.split("/");
-        const name = segments.pop();
-        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+        const results = files.map(file => {
+            const segments = file.split("/");
+            const name = segments.pop();
+            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
 
-        if(dir.children.find(node => node.name === name)) return `File ${name} already exists`;
+            if(dir.children.find(node => node.name === name)) return `File ${name} already exists`;
 
-        const node = new Node(name);
-        dir.addNode(node);
-        return `File ${name} created`;
+            const node = new Node(name);
+            dir.addNode(node);
+            return `File ${name} created`;
+        });
+
+        return results.join("<br>");
     } catch(e){
         return e.message;
     }
 }
 
-export function mkdir(path){
-    if(!path) return "No specified name";
+export function mkdir(paths){
+    if(!paths.length) return "No specified name";
 
     try{
-        const segments = path.split("/");
-        const name = segments.pop();
-        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+        const results = paths.map(path => {
+            const segments = path.split("/");
+            const name = segments.pop();
+            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
 
-        if(dir.children.find(node => node.name === name)) return `Directory ${name} already exists`;
+            if(dir.children.find(node => node.name === name)) return `Directory ${name} already exists`;
 
-        const node = new Node(name, true);
-        dir.addNode(node);
-        return `Directory ${name} created`;
+            const node = new Node(name, true);
+            dir.addNode(node);
+            return `Directory ${name} created`;
+        });
+
+        return results.join("<br>");
     } catch(e){
         return e.message;
     }
 }
 
-export function rm(path){
-    if(!path) return "No specified file or directory";
+export function rm(paths){
+    if(!paths.length) return "No specified file or directory";
 
     try{
-        const segments = path.split("/");
-        const name = segments.pop();
-        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+        const results = paths.map(path => {
+            const segments = path.split("/");
+            const name = segments.pop();
+            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
 
-        const node = dir.children.find(node => node.name === name);
-        if(node){
-            dir.children = dir.children.filter(node => node.name !== name);
-            return `${!node.isDir ? 'File' : 'Directory'} ${name} removed`;
-        } else {
-            return `No such file or directory: ${name}`;
-        }
+            const node = dir.children.find(node => node.name === name);
+            if(node){
+                dir.children = dir.children.filter(node => node.name !== name);
+                return `${!node.isDir ? 'File' : 'Directory'} ${name} removed`;
+            } else {
+                return `No such file or directory: ${name}`;
+            }
+        });
+
+        return results.join("<br>");
     } catch(e){
         return e.message;
     }
@@ -221,15 +236,23 @@ export function history(){
     return commandHistory.map((command, index) => `${index + 1} ${command}`).join("<br>");
 }
 
+export function changeUser(newUser="user"){
+    user = newUser;
+    return `User changed to ${user}`;
+}
+
 export function execute(command){
-    //TODO: Implement a function to parse the command and its arguments considering quotes
-    let [ executedCommand, ...commandArguments ] = command.split(" ");
+    let [ executedCommand, ...commandArguments ] = parseCommand(command);
 
     // Save the command in the history
     commandHistory.push(command);
     commandIndex = commandHistory.length;
 
     if(commands[executedCommand]){
+        // Show the command in the terminal
+        text.push(`${getPreInput()}: ${command}`);
+
+        // Execute the command
         const result = commands[executedCommand](commandArguments);
 
         return result;
@@ -238,11 +261,6 @@ export function execute(command){
 
         return text;
     }
-}
-
-export function changeUser(newUser="user"){
-    user = newUser;
-    return `User changed to ${user}`;
 }
 
 export function getPreInput(){
@@ -270,6 +288,23 @@ export function getDirectoryFromPath(path){
     })
 
     return aux;
+}
+
+export function parseCommand(command){
+    const regex = /"([^"]+)"|\S+/g;
+    const matches = [];
+    const words = command.matchAll(regex);
+
+    words.forEach(word => {
+        // If exists a capture group (the match is between quotes)
+        if(word[1] != undefined){
+            matches.push(word[1]);
+        } else {
+            matches.push(word[0]);
+        }
+    })
+
+    return matches;
 }
 
 export function handleKeyDown(e){
