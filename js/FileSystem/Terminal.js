@@ -16,6 +16,9 @@ let commands = {
             - cat [file]: Print the contents of the specified file<br>
             - write [file] [content]: Write the specified content to the specified file<br>
             - touch [file]: Create a new file with the specified name<br>
+            - mkdir [name]: Create a new directory with the specified name<br>
+            - rm [file]: Remove the specified file or directory<br>
+            - history: Print the command history<br>
             - user [name]: Change the current user to the specified name<br>
         `);
         return text;
@@ -63,6 +66,11 @@ let commands = {
     },
     "clear": () => {
         text = [];
+        return text;
+    },
+    "history": () => {
+        text.push(`${getPreInput()}: history`);
+        text.push(history());
         return text;
     },
     "user": (commandArguments) => {
@@ -207,6 +215,10 @@ export function rm(path){
     } catch(e){
         return e.message;
     }
+}
+
+export function history(){
+    return commandHistory.map((command, index) => `${index + 1} ${command}`).join("<br>");
 }
 
 export function execute(command){
