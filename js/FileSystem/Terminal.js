@@ -14,6 +14,8 @@ let commands = {
             - clear: Clear the terminal<br>
             - cd [path]: Change the current directory to the specified path<br>
             - cat [file]: Print the contents of the specified file<br>
+            - write [file] [content]: Write the specified content to the specified file<br>
+            - touch [file]: Create a new file with the specified name<br>
             - user [name]: Change the current user to the specified name<br>
         `);
         return text;
