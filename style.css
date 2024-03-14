@@ -66,6 +66,9 @@ body{
   &.active{
     z-index: 100;
   }
+  &:not(.active){
+    filter: contrast(0.9) brightness(0.7);
+  }
 }
 .top-bar{
   display: flex;

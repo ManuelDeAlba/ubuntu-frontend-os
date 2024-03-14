@@ -1,5 +1,13 @@
 import Node from "./Node.js";
 
+class TerminalError extends Error {
+    constructor({ code, message }){
+        super(message);
+        this.name = "TerminalError";
+        this.code = code || 0;
+    }
+}
+
 let user = "user";
 const rootFolder = new Node("root", true);
 export let currentDirectory = rootFolder;
@@ -66,15 +74,21 @@ let commands = {
     "user": (commandArguments) => {
         text.push(changeUser(commandArguments));
         return text;
-    }
+    },
+    "exit": () => {
+        throw new TerminalError({
+            code: 0,
+            message: "Process finished with exit code 0"
+        });
+    },
 }
 
-let text = [
+export const defaultText = [
     "Welcome to Ubuntu",
     "Type 'help' to see a list of commands",
     "Type 'clear' to clear the terminal"
 ];
-
+let text = [...defaultText];
 let commandHistory = [];
 let commandIndex = 0;
 
@@ -262,6 +276,11 @@ export function execute(command){
 
         return text;
     }
+}
+
+export function reset(){
+    text = [...defaultText];
+    return text;
 }
 
 export function getPreInput(){

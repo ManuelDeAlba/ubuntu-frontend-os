@@ -25,6 +25,23 @@ function actionOnSubmit(selector, callback) {
 }
 
 // Window actions
+actionOnClick(".bar-icon", (e, target) => {
+    const currentWindow = document.querySelector(target.dataset.window);
+
+    if(currentWindow.matches(".hidden")){
+        // If the window is hidden, show it
+        currentWindow.classList.remove("hidden");
+    } else if(currentWindow.matches(".active")){
+        // If the window is visible and active, hide it
+        currentWindow.classList.add("hidden");
+    }
+
+    // Bring the window to the front
+    const windows = document.querySelectorAll(".window");
+    windows.forEach(w => w.classList.remove("active"));
+    if(!currentWindow.matches(".hidden")) currentWindow.classList.add("active");
+})
+
 actionOnClick(".window", (e) => {
     const clickedWindow = e.target.closest(".window");
 
@@ -60,20 +77,11 @@ actionOnClick(".close", (e) => {
     clickedWindow.classList.add("hidden");
 })
 
-// Explorer actions
-actionOnClick(".explorer-icon", (e) => {
-    explorer.classList.toggle("hidden");
-})
-
 // Terminal actions
 actionOnClick(".terminal", e => {
     const currentWindow = e.target.closest(".window");
     const input = currentWindow.querySelector("input.input");
     setTimeout(() => input.focus(), 0);
-})
-
-actionOnClick(".terminal-icon", (e) => {
-    terminal.classList.toggle("hidden");
 })
 
 actionOnSubmit(".input-bar", e => {
@@ -89,7 +97,14 @@ actionOnSubmit(".input-bar", e => {
         if (result) text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
         preInput.innerHTML = Terminal.getPreInput() + "$";
     } catch (error) {
-        console.error(error.message);
+        if(error.code == 0){
+            // Close the terminal due to the exit command
+            terminal.classList.add("hidden");
+            const result = Terminal.reset();
+            text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
+        } else {
+            console.error(error.message);
+        }
     }
 
     input.value = "";
@@ -100,16 +115,18 @@ actionOnSubmit(".input-bar", e => {
 window.addEventListener("submit", e => {
     e.preventDefault();
     submitActions.forEach(({ selector, callback }) => {
-        if (e.target.closest(selector)) {
-            callback(e);
+        let target = e.target.closest(selector);
+        if (target) {
+            callback(e, target);
         }
     })
 })
 
 window.addEventListener('mousedown', e => {
     clickActions.forEach(({ selector, callback }) => {
-        if (e.target.closest(selector)) {
-            callback(e);
+        let target = e.target.closest(selector);
+        if (target) {
+            callback(e, target);
         }
     })
 })
