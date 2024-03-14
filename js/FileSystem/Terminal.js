@@ -236,7 +236,8 @@ export function history(){
     return commandHistory.map((command, index) => `${index + 1} ${command}`).join("<br>");
 }
 
-export function changeUser(newUser="user"){
+export function changeUser(commandArguments){
+    const newUser = commandArguments[0] || "user";
     user = newUser;
     return `User changed to ${user}`;
 }
