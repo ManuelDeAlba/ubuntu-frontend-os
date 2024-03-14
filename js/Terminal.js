@@ -28,52 +28,43 @@ let commands = {
             - history: Print the command history<br>
             - user [name]: Change the current user to the specified name<br>
         `);
-        return text;
     },
     "pwd": () => {
         text.push(`${pwd()}`);
-        return text;
     },
     "ls": (commandArguments) => {
         text.push(ls(commandArguments));
-        return text;
     },
     "cd": (commandArguments) => {
         const res = cd(commandArguments[0]);
         if(res) text.push(res);
-        return text;
     },
     "cat": (commandArguments) => {
         text.push(cat(commandArguments));
-        return text;
     },
     "write": (commandArguments) => {
         text.push(write(commandArguments));
-        return text;
     },
     "touch": (commandArguments) => {
         text.push(touch(commandArguments));
-        return text;
     },
     "mkdir": (commandArguments) => {
         text.push(mkdir(commandArguments));
-        return text;
     },
     "rm": (commandArguments) => {
         text.push(rm(commandArguments));
-        return text;
+    },
+    "mv": (commandArguments) => {
+        text.push(mv(commandArguments));
     },
     "clear": () => {
         text = [];
-        return text;
     },
     "history": () => {
         text.push(history());
-        return text;
     },
     "user": (commandArguments) => {
         text.push(changeUser(commandArguments));
-        return text;
     },
     "exit": () => {
         throw new TerminalError({
@@ -268,9 +259,9 @@ export function execute(command){
         text.push(`${getPreInput()}: ${command}`);
 
         // Execute the command
-        const result = commands[executedCommand](commandArguments);
+        commands[executedCommand](commandArguments);
 
-        return result;
+        return text;
     } else {
         text.push(`${getPreInput()}: ${command} <br> Command not found: ${command}`);
 
