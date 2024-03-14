@@ -1,4 +1,5 @@
-import Node from "./Node.js";
+import Node from "./FileSystem/Node.js";
+import { ROOT_FOLDER } from "./FileSystem/script.js";
 
 class TerminalError extends Error {
     constructor({ code, message }){
@@ -9,8 +10,7 @@ class TerminalError extends Error {
 }
 
 let user = "user";
-const rootFolder = new Node("root", true);
-export let currentDirectory = rootFolder;
+export let currentDirectory = ROOT_FOLDER;
 
 let commands = {
     "help": () => {
@@ -119,7 +119,7 @@ export function ls(paths){
 
 export function cd(path) {
     if(!path){
-        currentDirectory = rootFolder;
+        currentDirectory = ROOT_FOLDER;
         return "";
     }
 
@@ -348,13 +348,3 @@ export function handleKeyDown(e){
         }
     }
 }
-
-//? DEFAULT FOLDERS AND FILES
-const folder1 = new Node("folder1", true);
-rootFolder.addNode(folder1);
-let file = new Node("file.txt");
-file.addContent("Hello, world!");
-rootFolder.addNode(file);
-
-folder1.addNode(new Node("file2.txt"));
-folder1.addNode(new Node("folder2", true));

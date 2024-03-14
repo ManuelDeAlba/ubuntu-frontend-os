@@ -1,4 +1,4 @@
-import * as Terminal from "./FileSystem/Terminal.js";
+import * as Terminal from "./Terminal.js";
 
 const explorer = document.querySelector(".explorer");
 const terminal = document.querySelector(".terminal");
