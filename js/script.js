@@ -1,4 +1,5 @@
 import * as Terminal from "./Terminal.js";
+import { clamp } from "./utils.js";
 
 const explorer = document.querySelector(".explorer");
 const terminal = document.querySelector(".terminal");
@@ -51,13 +52,13 @@ actionOnClick(".window", (e) => {
     clickedWindow.classList.add("active");
 })
 
-actionOnClick(".top-bar", (e) => {
+actionOnClick(".top-bar", (e, target) => {
     dragInfo.x = e.clientX;
     dragInfo.y = e.clientY;
     dragInfo.isDragging = true;
-    dragInfo.element = e.target;
-    dragInfo.relativeX = e.clientX - e.target.parentElement.offsetLeft;
-    dragInfo.relativeY = e.clientY - e.target.parentElement.offsetTop;
+    dragInfo.element = target;
+    dragInfo.relativeX = e.clientX - target.parentElement.offsetLeft;
+    dragInfo.relativeY = e.clientY - target.parentElement.offsetTop;
 });
 
 actionOnClick(".minimize", (e) => {
@@ -136,8 +137,9 @@ window.addEventListener("mousemove", e => {
     const y = e.clientY;
 
     if (dragInfo.isDragging && dragInfo.element) {
-        dragInfo.element.parentElement.style.left = `${x - dragInfo.relativeX}px`;
-        dragInfo.element.parentElement.style.top = `${y - dragInfo.relativeY}px`;
+        const currentWindow = dragInfo.element.closest(".window");
+        currentWindow.style.left = `${clamp(x - dragInfo.relativeX, -currentWindow.scrollWidth/2, innerWidth-currentWindow.scrollWidth/2)}px`;
+        currentWindow.style.top = `${clamp(y - dragInfo.relativeY, 0, window.innerHeight-currentWindow.scrollHeight/2)}px`;
     }
 })
 
