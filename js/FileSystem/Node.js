@@ -8,6 +8,11 @@ class Node {
         this.children = [];
     }
 
+    setName(name){
+        this.name = name;
+        this.updatePath();
+    }
+
     addContent(content){
         if (!this.isDir) this.content = content;
         else throw new Error("Cannot add content to a directory");
@@ -17,10 +22,30 @@ class Node {
         return this.content;
     }
 
+    findNode(name){
+        return this.children.find((child) => child.name === name);
+    }
+
     addNode(node) {
         this.children.push(node);
-        node.parent = this;
-        node.path = this.path + "/" + node.name;
+        node.setParent(this);
+    }
+
+    removeNodeByName(name) {
+        this.children = this.children.filter((child) => child.name !== name);
+    }
+
+    removeNode(node) {
+        this.children = this.children.filter((child) => child !== node);
+    }
+
+    setParent(parent){
+        this.parent = parent;
+        this.updatePath();
+    }
+
+    updatePath(){
+        if(this.parent) this.path = this.parent.path + "/" + this.name;
     }
 
     getPath(){

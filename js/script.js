@@ -104,7 +104,7 @@ actionOnSubmit(".input-bar", e => {
             const result = Terminal.reset();
             text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
         } else {
-            console.error(error.message);
+            console.error(error.stack);
         }
     }
 

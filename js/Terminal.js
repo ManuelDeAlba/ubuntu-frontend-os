@@ -92,7 +92,7 @@ export function ls(paths){
 
     try{
         const results = paths.map(path => {
-            const dir = getDirectoryFromPath(path);
+            const dir = getDirectoryFromRelativePath(path);
 
             if(paths.length == 1){
                 return dir.getTree();
@@ -115,7 +115,7 @@ export function cd(path) {
     }
 
     try {
-        const dir = getDirectoryFromPath(path);
+        const dir = getDirectoryFromRelativePath(path);
         currentDirectory = dir;
     } catch(e){
         return e.message;
@@ -130,7 +130,7 @@ export function cat(paths){
             // Get the file and the directory
             const segments = path.split("/");
             const file = segments.pop();
-            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
         
             // Read the content of the file
             const node = dir.children.find(node => node.name === file);
@@ -155,7 +155,7 @@ export function write(commandArguments){
     try{
         const segments = path.split("/");
         const file = segments.pop();
-        const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+        const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
 
         const node = dir.children.find(node => node.name === file);
         if(node && !node.isDir){
@@ -176,7 +176,7 @@ export function touch(files){
         const results = files.map(file => {
             const segments = file.split("/");
             const name = segments.pop();
-            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
 
             if(dir.children.find(node => node.name === name)) return `File ${name} already exists`;
 
@@ -198,7 +198,7 @@ export function mkdir(paths){
         const results = paths.map(path => {
             const segments = path.split("/");
             const name = segments.pop();
-            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
 
             if(dir.children.find(node => node.name === name)) return `Directory ${name} already exists`;
 
@@ -220,11 +220,11 @@ export function rm(paths){
         const results = paths.map(path => {
             const segments = path.split("/");
             const name = segments.pop();
-            const dir = segments.length ? getDirectoryFromPath(segments.join("/")) : currentDirectory;
+            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
 
-            const node = dir.children.find(node => node.name === name);
+            const node = dir.findNode(name);
             if(node){
-                dir.children = dir.children.filter(node => node.name !== name);
+                dir.removeNode(node);
                 return `${!node.isDir ? 'File' : 'Directory'} ${name} removed`;
             } else {
                 return `No such file or directory: ${name}`;
@@ -235,6 +235,75 @@ export function rm(paths){
     } catch(e){
         return e.message;
     }
+}
+
+export function mv(commandArguments){
+    // Relative paths
+    const [ source, destination ] = commandArguments;
+
+    if(!source || !destination) return "No specified source or destination";
+
+    // Get the nodes to move
+    let sourceNode;
+    let destinationNode;
+
+    try{
+        sourceNode = getNodeFromPath(source);
+    } catch(e){
+        return e.message;
+    }
+
+    // Try to get the destination node if it exists
+    // This is useful to check if we need to rename the node
+    try{
+        destinationNode = getNodeFromPath(destination);
+    } catch(e){}
+
+    if(!sourceNode) return "No such file or directory";
+    if(sourceNode === destinationNode) return "Source and destination are the same";
+    if(destinationNode && sourceNode.name === destinationNode.name) return "Source and destination have the same name";
+    if(destinationNode && !destinationNode.isDir) return "Destination is not a directory and cannot replace the file";
+
+    // Paths to show in the output
+    let prevPath = sourceNode?.path;
+    let newPath = destinationNode?.path;
+
+    // node -> folder
+    if(destinationNode && destinationNode.isDir){
+        // First remove the node from the parent
+        let parent = sourceNode.parent || sourceNode;
+        parent.removeNode(sourceNode);
+
+        // Then add the node to the destination
+        destinationNode.addNode(sourceNode);
+    }
+
+    // note -> renamedNode
+    if(!destinationNode){
+        prevPath = sourceNode.path;
+
+        // Get the new name
+        const destinationSegments = destination.split("/");
+        let newName = destinationSegments.pop();
+
+        // Get the directory
+        const destinationDir = destinationSegments.length ? getDirectoryFromRelativePath(destinationSegments.join("/")) : currentDirectory;
+
+        // Change name
+        sourceNode.setName(newName);
+
+        // First remove the node from the parent
+        let parent = sourceNode.parent || sourceNode;
+        parent.removeNode(sourceNode);
+        
+        // Add the node to the destination
+        // And update the path
+        destinationDir.addNode(sourceNode);
+
+        newPath = sourceNode.path;
+    }
+    
+    return `Moved ${prevPath} to ${newPath}`;
 }
 
 export function history(){
@@ -278,23 +347,42 @@ export function getPreInput(){
     return `<span style="color: lightgreen;">${user}@ubuntu</span>:<span style="color: lightblue;">${pwd()}</span>`;
 }
 
+export function getDirectoryFromRelativePath(path){
+    return getNodeFromPath(path, {
+        onlyDirectory: true,
+        absolute: false
+    });
+}
+
 export function getDirectoryFromPath(path){
+    return getNodeFromPath(path, {
+        onlyDirectory: true,
+        absolute: true
+    });
+}
+
+export function getNodeFromPath(path, { onlyDirectory=false, absolute=false }={}){
     const segments = path.split("/");
-    let aux = currentDirectory;
+    let aux = absolute ? ROOT_FOLDER : currentDirectory;
 
     segments.forEach(segment => {
-        if (segment === ".") return;
-        if (segment === "..") {
+        if(!segment) return;
+        if(segment === ".") return;
+        if(segment === "..") {
             // If there is a parent, navigate to it
             // Otherwise, stay in the same directory
             if (aux.parent) aux = aux.parent;
         } else {
             // Search a node with the name of the segment
-            const node = aux.children.find(node => node.name === segment);
-            if (node && node.isDir) aux = node;
-            else {
-                throw new Error(`No such file or directory: ${segment}`);
-            }
+            const node = aux.findNode(segment);
+
+            // If the node does not exist, throw an error
+            if (!node) throw new Error(`No such file or directory: ${segment}`);
+
+            // If the node is not a directory and onlyDirectory is true, throw an error
+            if(onlyDirectory && !node.isDir) throw new Error(`Not a directory: ${segment}`);
+
+            aux = node;
         }
     })
 
