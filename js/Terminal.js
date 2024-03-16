@@ -218,16 +218,14 @@ export function rm(paths){
 
     try{
         const results = paths.map(path => {
-            const segments = path.split("/");
-            const name = segments.pop();
-            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
+            const node = getNodeFromPath(path);
+            const dir = node.parent;
 
-            const node = dir.findNode(name);
-            if(node){
+            if(dir){
                 dir.removeNode(node);
-                return `${!node.isDir ? 'File' : 'Directory'} ${name} removed`;
+                return `${!node.isDir ? 'File' : 'Directory'} ${node.name} removed`;
             } else {
-                return `No such file or directory: ${name}`;
+                return `Cannot remove root directory`;
             }
         });
 
