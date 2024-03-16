@@ -171,13 +171,11 @@ export function touch(files){
 
     const results = files.map(file => {
         try{
-            const isAbsolute = file.startsWith("/");
-            const segments = file.split("/");
-            const name = segments.pop();
+            const { isAbsolute, dirname, basename: name } = parsePath(file);
 
             // If the path is absolute, the segments must start with "/" even if there are no more segments to start on the root directory
             // Otherwise, the segments start on the current directory
-            const dir = getDirectoryFromPath(isAbsolute ? `/${segments.join("/")}` : segments.join("/"));
+            const dir = getDirectoryFromPath(isAbsolute ? `/${dirname}` : dirname);
 
             if(dir.findNode(name)) return `File ${name} already exists`;
 
@@ -198,13 +196,11 @@ export function mkdir(paths){
     
     const results = paths.map(path => {
         try{
-            const isAbsolute = path.startsWith("/");
-            const segments = path.split("/");
-            const name = segments.pop();
+            const { isAbsolute, dirname, basename: name } = parsePath(path);
 
             // If the path is absolute, the segments must start with "/" even if there are no more segments to start on the root directory
             // Otherwise, the segments start on the current directory
-            const dir = getDirectoryFromPath(isAbsolute ? `/${segments.join("/")}` : segments.join("/"));
+            const dir = getDirectoryFromPath(isAbsolute ? `/${dirname}` : dirname);
 
             if(dir.findNode(name)) return `Directory ${name} already exists`;
 
@@ -285,13 +281,11 @@ export function mv(commandArguments){
     if(!destinationNode){
         prevPath = sourceNode.path;
 
-        const isAbsolute = destination.startsWith("/");
-        const destinationSegments = destination.split("/");
-        let newName = destinationSegments.pop();
+        const { isAbsolute, dirname, basename: newName } = parsePath(destination);
 
         // If the path is absolute, the segments must start with "/" even if there are no more segments to start on the root directory
         // Otherwise, the segments start on the current directory
-        const destinationDir = getDirectoryFromPath(isAbsolute ? `/${destinationSegments.join("/")}` : destinationSegments.join("/"));
+        const destinationDir = getDirectoryFromPath(isAbsolute ? `/${dirname}` : dirname);
 
         // Change name
         sourceNode.setName(newName);
@@ -397,6 +391,19 @@ export function parseCommand(command){
     })
 
     return matches;
+}
+
+export function parsePath(path){
+    const isAbsolute = path.startsWith("/");
+    const segments = path.split("/");
+    const basename = segments.pop();
+
+    return {
+        isAbsolute,
+        segments,
+        dirname: segments.join("/"),
+        basename
+    }
 }
 
 export function handleKeyDown(e){
