@@ -127,31 +127,34 @@ actionOnClick({
     }
 })
 
-actionOnSubmit(".input-bar", e => {
-    const currentWindow = e.target.closest(".window");
-    const text = currentWindow.querySelector(".text");
-    const preInput = e.target.querySelector(".pre-input");
-    const input = e.target.querySelector("input");
-    const command = input.value;
+actionOnSubmit({
+    selector: ".input-bar",
+    callback: e => {
+        const currentWindow = e.target.closest(".window");
+        const text = currentWindow.querySelector(".text");
+        const preInput = e.target.querySelector(".pre-input");
+        const input = e.target.querySelector("input");
+        const command = input.value;
 
-    try {
-        const result = Terminal.execute(command);
+        try {
+            const result = Terminal.execute(command);
 
-        if (result) text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
-        preInput.innerHTML = Terminal.getPreInput() + "$";
-    } catch (error) {
-        if(error.code == 0){
-            // Close the terminal due to the exit command
-            terminal.classList.add("hidden");
-            const result = Terminal.reset();
-            text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
-        } else {
-            console.error(error.stack);
+            if (result) text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
+            preInput.innerHTML = Terminal.getPreInput() + "$";
+        } catch (error) {
+            if(error.code == 0){
+                // Close the terminal due to the exit command
+                terminal.classList.add("hidden");
+                const result = Terminal.reset();
+                text.innerHTML = result.map(line => `<p>${line}</p>`).join("");
+            } else {
+                console.error(error.stack);
+            }
         }
-    }
 
-    input.value = "";
-    currentWindow.querySelector(".content").scrollTo(0, currentWindow.querySelector(".content").scrollHeight);
+        input.value = "";
+        currentWindow.querySelector(".content").scrollTo(0, currentWindow.querySelector(".content").scrollHeight);
+    }
 })
 
 //! EVENTS
