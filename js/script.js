@@ -21,86 +21,110 @@ let dragInfo = {
 let clickActions = [];
 let submitActions = [];
 
-function actionOnClick(selector, callback) {
-    clickActions.push({ selector, callback });
+function actionOnClick({ selector, strict=false, callback }) {
+    // The strict parameter is used to determine if the selector should be exact or not
+    clickActions.push({ selector, strict, callback });
 }
 
-function actionOnSubmit(selector, callback) {
+function actionOnSubmit({ selector, callback }) {
     submitActions.push({ selector, callback });
 }
 
-// Window actions
-actionOnClick(".bar-icon", (e, target) => {
-    const currentWindow = document.querySelector(target.dataset.window);
+// Task bar actions
+actionOnClick({
+    selector: ".bar-icon",
+    callback: (e, target) => {
+        const currentWindow = document.querySelector(target.dataset.window);
 
-    if(currentWindow.matches(".hidden")){
-        // If the window is hidden, show it
-        currentWindow.classList.remove("hidden");
-    } else if(currentWindow.matches(".active")){
-        // If the window is visible and active, hide it
-        currentWindow.classList.add("hidden");
+        if(currentWindow.matches(".hidden")){
+            // If the window is hidden, show it
+            currentWindow.classList.remove("hidden");
+        } else if(currentWindow.matches(".active")){
+            // If the window is visible and active, hide it
+            currentWindow.classList.add("hidden");
+        }
+
+        // Bring the window to the front
+        const windows = document.querySelectorAll(".window");
+        windows.forEach(w => w.classList.remove("active"));
+        if(!currentWindow.matches(".hidden")) currentWindow.classList.add("active");
     }
-
-    // Bring the window to the front
-    const windows = document.querySelectorAll(".window");
-    windows.forEach(w => w.classList.remove("active"));
-    if(!currentWindow.matches(".hidden")) currentWindow.classList.add("active");
 })
 
-actionOnClick(".window", (e) => {
-    // Check the edges
-    const edge = e.target;
-    const clickedWindow = e.target.closest(".window");
+// Window actions
+actionOnClick({
+    selector: ".window",
+    callback: (e) => {
+        // Check the edges
+        const edge = e.target;
+        const clickedWindow = e.target.closest(".window");
 
-    // Bring the window to the front
-    const windows = document.querySelectorAll(".window");
-    windows.forEach(w => w.classList.remove("active"));
-    clickedWindow.classList.add("active");
+        // Bring the window to the front
+        const windows = document.querySelectorAll(".window");
+        windows.forEach(w => w.classList.remove("active"));
+        clickedWindow.classList.add("active");
 
-    dragInfo.x = e.clientX;
-    dragInfo.y = e.clientY;
-    dragInfo.w = clickedWindow.offsetWidth;
-    dragInfo.h = clickedWindow.offsetHeight;
-    dragInfo.isResizing = true;
-    dragInfo.edge = edge;
+        dragInfo.x = e.clientX;
+        dragInfo.y = e.clientY;
+        dragInfo.w = clickedWindow.offsetWidth;
+        dragInfo.h = clickedWindow.offsetHeight;
+        dragInfo.isResizing = true;
+        dragInfo.edge = edge;
+    }
 })
 
-actionOnClick(".top-bar", (e, target) => {
-    dragInfo.x = e.clientX;
-    dragInfo.y = e.clientY;
-    dragInfo.isDragging = true;
-    dragInfo.element = target;
-    dragInfo.relativeX = e.clientX - target.parentElement.offsetLeft;
-    dragInfo.relativeY = e.clientY - target.parentElement.offsetTop;
+actionOnClick({
+    selector: ".top-bar",
+    strict: true,
+    callback: (e, target) => {
+        dragInfo.x = e.clientX;
+        dragInfo.y = e.clientY;
+        dragInfo.isDragging = true;
+        dragInfo.element = target;
+        dragInfo.relativeX = e.clientX - target.parentElement.offsetLeft;
+        dragInfo.relativeY = e.clientY - target.parentElement.offsetTop;
+    }
 });
 
-actionOnClick(".minimize", (e) => {
-    const clickedWindow = e.target.closest(".window");
-    clickedWindow.classList.add("hidden");
-})
-
-actionOnClick(".maximize", (e) => {
-    const clickedWindow = e.target.closest(".window");
-    clickedWindow.classList.toggle("maximized");
-
-    if(clickedWindow.matches(".maximized")){
-        clickedWindow.style.top = "";
-        clickedWindow.style.left = "";
-        clickedWindow.style.width = "";
-        clickedWindow.style.height = "";
+actionOnClick({
+    selector: ".minimize",
+    callback: (e) => {
+        const clickedWindow = e.target.closest(".window");
+        clickedWindow.classList.add("hidden");
     }
 })
 
-actionOnClick(".close", (e) => {
-    const clickedWindow = e.target.closest(".window");
-    clickedWindow.classList.add("hidden");
+actionOnClick({
+    selector: ".maximize",
+    callback: (e) => {
+        const clickedWindow = e.target.closest(".window");
+        clickedWindow.classList.toggle("maximized");
+
+        if(clickedWindow.matches(".maximized")){
+            clickedWindow.style.top = "";
+            clickedWindow.style.left = "";
+            clickedWindow.style.width = "";
+            clickedWindow.style.height = "";
+        }
+    }
+})
+
+actionOnClick({
+    selector: ".close",
+    callback: (e) => {
+        const clickedWindow = e.target.closest(".window");
+        clickedWindow.classList.add("hidden");
+    }
 })
 
 // Terminal actions
-actionOnClick(".terminal", e => {
-    const currentWindow = e.target.closest(".window");
-    const input = currentWindow.querySelector("input.input");
-    setTimeout(() => input.focus(), 0);
+actionOnClick({
+    selector: ".terminal",
+    callback: e => {
+        const currentWindow = e.target.closest(".window");
+        const input = currentWindow.querySelector("input.input");
+        setTimeout(() => input.focus(), 0);
+    }
 })
 
 actionOnSubmit(".input-bar", e => {
@@ -142,11 +166,12 @@ window.addEventListener("submit", e => {
 })
 
 window.addEventListener('mousedown', e => {
-    clickActions.forEach(({ selector, callback }) => {
-        let target = e.target.closest(selector);
-        if (target) {
-            callback(e, target);
-        }
+    clickActions.forEach(({ selector, strict, callback }) => {
+        let target;
+        if(strict) target = e.target.matches(selector) ? e.target : null;
+        else target = e.target.closest(selector);
+
+        if (target) callback(e, target);
     })
 })
 
