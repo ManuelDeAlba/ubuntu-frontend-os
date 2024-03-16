@@ -114,6 +114,12 @@ actionOnClick({
     callback: (e) => {
         const clickedWindow = e.target.closest(".window");
         clickedWindow.classList.add("hidden");
+
+        // When the terminal is closed, reset it
+        if(clickedWindow.matches(".terminal")){
+            const result = Terminal.reset();
+            clickedWindow.querySelector(".text").innerHTML = result.map(line => `<p>${line}</p>`).join("");
+        }
     }
 })
 
