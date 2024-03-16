@@ -254,6 +254,5 @@ window.addEventListener("keydown", e => {
 })
 
 window.addEventListener("load", () => {
-    const terminalWindow = document.querySelector(".terminal");
-    terminalWindow.querySelector(".input-bar .pre-input").innerHTML = Terminal.getPreInput() + "$";
+    terminal.querySelector(".input-bar .pre-input").innerHTML = Terminal.getPreInput() + "$";
 })
