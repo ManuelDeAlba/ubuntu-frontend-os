@@ -397,9 +397,9 @@ export function parseCommand(command){
     words.forEach(word => {
         // If exists a capture group (the match is between quotes)
         if(word[1] != undefined){
-            matches.push(word[1]);
+            matches.push(word[1].toLowerCase());
         } else {
-            matches.push(word[0]);
+            matches.push(word[0].toLowerCase());
         }
     })
 
