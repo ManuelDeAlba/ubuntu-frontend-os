@@ -9,6 +9,12 @@ class TerminalError extends Error {
     }
 }
 
+const TERMINAL_ERRORS = {
+    PROCESS_FINISHED: new TerminalError({ code: 0, message: "Process finished with exit code 0" }),
+    INEXISTENT_NODE: (name) => new TerminalError({ code: "terminal/inexistent-node", message: `No such file or directory: ${name}` }),
+    NOT_DIRECTORY: (name) => new TerminalError({ code: "terminal/not-directory", message: `Not a directory: ${name}` }),
+}
+
 let user = "user";
 export let currentDirectory = ROOT_FOLDER;
 
@@ -67,10 +73,7 @@ let commands = {
         text.push(changeUser(commandArguments));
     },
     "exit": () => {
-        throw new TerminalError({
-            code: 0,
-            message: "Process finished with exit code 0"
-        });
+        throw TERMINAL_ERRORS.PROCESS_FINISHED;
     },
 }
 
@@ -375,10 +378,10 @@ export function getNodeFromPath(path, { onlyDirectory=false, absolute=false }={}
             const node = aux.findNode(segment);
 
             // If the node does not exist, throw an error
-            if (!node) throw new Error(`No such file or directory: ${segment}`);
+            if (!node) throw TERMINAL_ERRORS.INEXISTENT_NODE(segment);
 
             // If the node is not a directory and onlyDirectory is true, throw an error
-            if(onlyDirectory && !node.isDir) throw new Error(`Not a directory: ${segment}`);
+            if(onlyDirectory && !node.isDir) throw TERMINAL_ERRORS.NOT_DIRECTORY(segment);
 
             aux = node;
         }
