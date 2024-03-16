@@ -95,7 +95,7 @@ export function ls(paths){
 
     const results = paths.map(path => {
         try{
-            const dir = getDirectoryFromRelativePath(path);
+            const dir = getDirectoryFromPath(path);
 
             if(paths.length == 1){
                 return dir.getTree();
@@ -118,7 +118,7 @@ export function cd(path) {
     }
 
     try {
-        const dir = getDirectoryFromRelativePath(path);
+        const dir = getDirectoryFromPath(path);
         currentDirectory = dir;
     } catch(e){
         return e.message;
@@ -151,7 +151,6 @@ export function write(commandArguments){
     
     if(!path) return "No specified file";
 
-    const name = path.split("/").pop();
     try{
         const node = getNodeFromPath(path);
 
@@ -172,11 +171,15 @@ export function touch(files){
 
     const results = files.map(file => {
         try{
+            const isAbsolute = file.startsWith("/");
             const segments = file.split("/");
             const name = segments.pop();
-            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
 
-            if(dir.children.find(node => node.name === name)) return `File ${name} already exists`;
+            // If the path is absolute, the segments must start with "/" even if there are no more segments to start on the root directory
+            // Otherwise, the segments start on the current directory
+            const dir = getDirectoryFromPath(isAbsolute ? `/${segments.join("/")}` : segments.join("/"));
+
+            if(dir.findNode(name)) return `File ${name} already exists`;
 
             const node = new Node(name);
             dir.addNode(node);
@@ -195,11 +198,15 @@ export function mkdir(paths){
     
     const results = paths.map(path => {
         try{
+            const isAbsolute = path.startsWith("/");
             const segments = path.split("/");
             const name = segments.pop();
-            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
 
-            if(dir.children.find(node => node.name === name)) return `Directory ${name} already exists`;
+            // If the path is absolute, the segments must start with "/" even if there are no more segments to start on the root directory
+            // Otherwise, the segments start on the current directory
+            const dir = getDirectoryFromPath(isAbsolute ? `/${segments.join("/")}` : segments.join("/"));
+
+            if(dir.findNode(name)) return `Directory ${name} already exists`;
 
             const node = new Node(name, true);
             dir.addNode(node);
@@ -235,7 +242,6 @@ export function rm(paths){
 }
 
 export function mv(commandArguments){
-    // Relative paths
     const [ source, destination ] = commandArguments;
 
     if(!source || !destination) return "No specified source or destination";
@@ -275,16 +281,17 @@ export function mv(commandArguments){
         destinationNode.addNode(sourceNode);
     }
 
-    // note -> renamedNode
+    // node -> renamedNode
     if(!destinationNode){
         prevPath = sourceNode.path;
 
-        // Get the new name
+        const isAbsolute = destination.startsWith("/");
         const destinationSegments = destination.split("/");
         let newName = destinationSegments.pop();
 
-        // Get the directory
-        const destinationDir = destinationSegments.length ? getDirectoryFromRelativePath(destinationSegments.join("/")) : currentDirectory;
+        // If the path is absolute, the segments must start with "/" even if there are no more segments to start on the root directory
+        // Otherwise, the segments start on the current directory
+        const destinationDir = getDirectoryFromPath(isAbsolute ? `/${destinationSegments.join("/")}` : destinationSegments.join("/"));
 
         // Change name
         sourceNode.setName(newName);
@@ -344,27 +351,12 @@ export function getPreInput(){
     return `<span style="color: lightgreen;">${user}@ubuntu</span>:<span style="color: lightblue;">${pwd()}</span>`;
 }
 
-export function getDirectoryFromRelativePath(path){
-    return getNodeFromPath(path, {
-        onlyDirectory: true,
-        absolute: false
-    });
-}
-
-export function getDirectoryFromPath(path){
-    return getNodeFromPath(path, {
-        onlyDirectory: true,
-        absolute: true
-    });
-}
-
-export function getNodeFromPath(path, { onlyDirectory=false, absolute=false }={}){
+export function getNodeFromPath(path, { onlyDirectory=false }={}){
     const segments = path.split("/");
-    let aux = absolute ? ROOT_FOLDER : currentDirectory;
+    let aux = path.startsWith("/") ? ROOT_FOLDER : currentDirectory;
 
     segments.forEach(segment => {
-        if(!segment) return;
-        if(segment === ".") return;
+        if(!segment || segment === ".") return;
         if(segment === "..") {
             // If there is a parent, navigate to it
             // Otherwise, stay in the same directory
@@ -384,6 +376,10 @@ export function getNodeFromPath(path, { onlyDirectory=false, absolute=false }={}
     })
 
     return aux;
+}
+
+export function getDirectoryFromPath(path){
+    return getNodeFromPath(path, { onlyDirectory: true });
 }
 
 export function parseCommand(command){
