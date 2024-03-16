@@ -16,6 +16,7 @@ body{
   height: 100dvh;
   background-image: url("https://149366088.v2.pressablecdn.com/wp-content/uploads/2022/03/jammy-jellyfish-wallpaper.jpg");
   background-size: cover;
+  background-position: center;
 }
 
 .bar{
