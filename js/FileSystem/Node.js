@@ -58,7 +58,15 @@ class Node {
         result += `${spaces} ${(this.isDir ? "📁 " : "📄 ")} ${this.name}<br>`;
 
         // Repeat the process for all the children
-        this.children.forEach((child) => result += child.getTree(level + 1));
+        let sortedChildren = this.children.toSorted((a,b) => {
+            // Sort directories first (only if they are different types)
+            if(a.isDir && !b.isDir) return -1;
+            if(!a.isDir && b.isDir) return 1;
+
+            // Sort by name if the types are the same
+            return a.name.localeCompare(b.name);
+        });
+        sortedChildren.forEach((child) => result += child.getTree(level + 1));
 
         return result;
     }
