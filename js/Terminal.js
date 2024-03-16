@@ -93,8 +93,8 @@ export function pwd() {
 export function ls(paths){
     if(!paths.length) return currentDirectory.getTree();
 
-    try{
-        const results = paths.map(path => {
+    const results = paths.map(path => {
+        try{
             const dir = getDirectoryFromRelativePath(path);
 
             if(paths.length == 1){
@@ -102,12 +102,12 @@ export function ls(paths){
             } else {
                 return `${path}:<br>${dir.getTree()}`;
             }
-        });
+        } catch(e){
+            return e.message;
+        }
+    });
 
-        return results.join("<br>");
-    } catch(e){
-        return e.message;
-    }
+    return results.join("<br>");
 
 }
 
@@ -128,26 +128,22 @@ export function cd(path) {
 export function cat(paths){
     if(!paths.length) return "No specified file";
 
-    try{
-        const results = paths.map(path => {
-            // Get the file and the directory
-            const segments = path.split("/");
-            const file = segments.pop();
-            const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
+    const results = paths.map(path => {
+        try{
+            const node = getNodeFromPath(path);
         
             // Read the content of the file
-            const node = dir.children.find(node => node.name === file);
-            if(node && !node.isDir){
+            if(!node.isDir){
                 return node.getContent();
             } else {
-                return `No such file: ${file || ""}`;
+                return `Cannot read a directory: ${node.name}`;
             }
-        });
+        } catch(e){
+            return e.message;
+        }
+    });
 
-        return results.join("<br>");
-    } catch(e){
-        return e.message;
-    }
+    return results.join("<br>");
 }
 
 export function write(commandArguments){
@@ -155,17 +151,16 @@ export function write(commandArguments){
     
     if(!path) return "No specified file";
 
+    const name = path.split("/").pop();
     try{
-        const segments = path.split("/");
-        const file = segments.pop();
-        const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
+        const node = getNodeFromPath(path);
 
-        const node = dir.children.find(node => node.name === file);
-        if(node && !node.isDir){
+        // Write the content to the file
+        if(!node.isDir){
             node.addContent(content);
-            return `Content written to ${file}`;
+            return `Content written to ${node.name}`;
         } else {
-            return `No such file: ${file || ""}`;
+            return `Cannot write to directory: ${node.name || ""}`;
         }
     } catch(e){
         return e.message;
@@ -175,8 +170,8 @@ export function write(commandArguments){
 export function touch(files){
     if(!files.length) return "No specified file";
 
-    try{
-        const results = files.map(file => {
+    const results = files.map(file => {
+        try{
             const segments = file.split("/");
             const name = segments.pop();
             const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
@@ -186,19 +181,20 @@ export function touch(files){
             const node = new Node(name);
             dir.addNode(node);
             return `File ${name} created`;
-        });
+        } catch(e){
+            console.log(e.code);
+            return e.message;
+        }
+    });
 
-        return results.join("<br>");
-    } catch(e){
-        return e.message;
-    }
+    return results.join("<br>");
 }
 
 export function mkdir(paths){
     if(!paths.length) return "No specified name";
-
-    try{
-        const results = paths.map(path => {
+    
+    const results = paths.map(path => {
+        try{
             const segments = path.split("/");
             const name = segments.pop();
             const dir = segments.length ? getDirectoryFromRelativePath(segments.join("/")) : currentDirectory;
@@ -208,12 +204,12 @@ export function mkdir(paths){
             const node = new Node(name, true);
             dir.addNode(node);
             return `Directory ${name} created`;
-        });
+        } catch(e){
+            return e.message;
+        }
+    });
 
-        return results.join("<br>");
-    } catch(e){
-        return e.message;
-    }
+    return results.join("<br>");
 }
 
 export function rm(paths){
