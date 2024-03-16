@@ -185,7 +185,7 @@ export function touch(files){
             // Otherwise, the segments start on the current directory
             const dir = getDirectoryFromPath(isAbsolute ? `/${dirname}` : dirname);
 
-            if(dir.findNode(name)) return `File ${name} already exists`;
+            if(dir.findNode(name)) return `File or directory ${name} is already in use`;
 
             const node = new Node(name);
             dir.addNode(node);
@@ -210,7 +210,7 @@ export function mkdir(paths){
             // Otherwise, the segments start on the current directory
             const dir = getDirectoryFromPath(isAbsolute ? `/${dirname}` : dirname);
 
-            if(dir.findNode(name)) return `Directory ${name} already exists`;
+            if(dir.findNode(name)) return `File or directory ${name} is already in use`;
 
             const node = new Node(name, true);
             dir.addNode(node);
