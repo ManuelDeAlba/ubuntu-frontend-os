@@ -381,12 +381,14 @@ export function parseCommand(command){
     const matches = [];
     const words = command.matchAll(regex);
 
-    words.forEach(word => {
+    words.forEach((word, index) => {
         // If exists a capture group (the match is between quotes)
         if(word[1] != undefined){
-            matches.push(word[1].toLowerCase());
+            matches.push(word[1]);
         } else {
-            matches.push(word[0].toLowerCase());
+            // Convert the command to lowercase
+            if(index == 0) matches.push(word[0].toLowerCase());
+            else matches.push(word[0]);
         }
     })
 
