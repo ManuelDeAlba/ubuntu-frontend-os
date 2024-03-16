@@ -287,6 +287,8 @@ export function mv(commandArguments){
 
     // node -> renamedNode
     if(!destinationNode){
+        if(sourceNode.name === "root") return "Cannot rename root directory";
+        
         prevPath = sourceNode.path;
 
         const { isAbsolute, dirname, basename: newName } = parsePath(destination);
