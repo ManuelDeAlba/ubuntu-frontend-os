@@ -218,8 +218,8 @@ export function mkdir(paths){
 export function rm(paths){
     if(!paths.length) return "No specified file or directory";
 
-    try{
-        const results = paths.map(path => {
+    const results = paths.map(path => {
+        try{
             const node = getNodeFromPath(path);
             const dir = node.parent;
 
@@ -229,12 +229,12 @@ export function rm(paths){
             } else {
                 return `Cannot remove root directory`;
             }
-        });
+        } catch(e){
+            return e.message;
+        }
+    });
 
-        return results.join("<br>");
-    } catch(e){
-        return e.message;
-    }
+    return results.join("<br>");
 }
 
 export function mv(commandArguments){
