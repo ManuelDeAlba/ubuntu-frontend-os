@@ -26,6 +26,7 @@ let commands = {
             - ls: List the contents of the current directory<br>
             - clear: Clear the terminal<br>
             - cd [path]: Change the current directory to the specified path<br>
+            - echo [text]: Print the specified text<br>
             - cat [file]: Print the contents of the specified file<br>
             - write [file] [content]: Write the specified content to the specified file<br>
             - touch [file]: Create a new file with the specified name<br>
@@ -44,6 +45,9 @@ let commands = {
     "cd": (commandArguments) => {
         const res = cd(commandArguments[0]);
         if(res) text.push(res);
+    },
+    "echo": (commandArguments) => {
+        text.push(echo(commandArguments));
     },
     "cat": (commandArguments) => {
         text.push(cat(commandArguments));
@@ -123,6 +127,10 @@ export function cd(path) {
     } catch(e){
         return e.message;
     }
+}
+
+export function echo(commandArguments){
+    return commandArguments.join(" ");
 }
 
 export function cat(paths){
