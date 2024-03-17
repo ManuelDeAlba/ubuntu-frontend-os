@@ -37,7 +37,7 @@ export function getNodeFromPath(path, {
     const segments = path.split("/");
     let aux = path.startsWith("/") ? ROOT_FOLDER : currentDirectory;
 
-    segments.forEach(segment => {
+    segments.forEach((segment, index) => {
         if(!segment || segment === ".") return;
         if(segment === "..") {
             // If there is a parent, navigate to it
@@ -46,9 +46,15 @@ export function getNodeFromPath(path, {
         } else {
             // Search a node with the name of the segment
             let node;
-            if(type === FILE_TYPES.ALL ) node = aux.findNode(segment);
-            else if(type === FILE_TYPES.FILE) node = aux.findFile(segment);
-            else if(type === FILE_TYPES.DIRECTORY) node = aux.findDirectory(segment);
+            if(index !== segments.length - 1){
+                // If it's not the last segment, we only need to find a directory to continue navigating
+                node = aux.findDirectory(segment);
+            } else {
+                // If it's the last segment, we need to check the type
+                if(type === FILE_TYPES.ALL ) node = aux.findNode(segment);
+                else if(type === FILE_TYPES.FILE) node = aux.findFile(segment);
+                else if(type === FILE_TYPES.DIRECTORY) node = aux.findDirectory(segment);
+            }
 
             // If the node does not exist, throw an error
             if (!node) throw FILE_SYSTEM_ERRORS.INEXISTENT_NODE(segment);
