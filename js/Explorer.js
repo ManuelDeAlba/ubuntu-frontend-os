@@ -52,7 +52,7 @@ export function generateExplorer(path=currentDirectory.path){
     });
 
     sortedFiles.forEach((child) => {
-        let srcIcon = child.isDir ? "https://cdn1.iconfinder.com/data/icons/fs-icons-ubuntu-by-franksouza-light/512/folder.png" : "https://cdn2.iconfinder.com/data/icons/line-files-type/129/TXT_File-512.png"
+        let srcIcon = child.isDir ? "/img/folder.webp" : "/img/file.webp"
         folders += `
             <div class="folder ${!child.isDir ? "file" : ""}" data-path="${child.path}">
                 <img src=${srcIcon}>
