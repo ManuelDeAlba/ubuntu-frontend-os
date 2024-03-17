@@ -32,6 +32,12 @@ export function goForward(){
     }
 }
 
+export function reset(){
+    currentDirectory = ROOT_FOLDER;
+    navigationHistory = [ROOT_FOLDER];
+    navigationIndex = 0;
+}
+
 export function generateExplorer(path=currentDirectory.path){
     let folders = "";
 
@@ -48,7 +54,7 @@ export function generateExplorer(path=currentDirectory.path){
     sortedFiles.forEach((child) => {
         let srcIcon = child.isDir ? "https://cdn1.iconfinder.com/data/icons/fs-icons-ubuntu-by-franksouza-light/512/folder.png" : "https://cdn2.iconfinder.com/data/icons/line-files-type/129/TXT_File-512.png"
         folders += `
-            <div class="folder ${!child.isDir && "file"}" data-path="${child.path}">
+            <div class="folder ${!child.isDir ? "file" : ""}" data-path="${child.path}">
                 <img src=${srcIcon}>
                 <span>${child.name}</span>
             </div>

@@ -12,7 +12,16 @@ ROOT_FOLDER.addNode(DESKTOP_FOLDER);
 ROOT_FOLDER.addNode(DOCUMENTS_FOLDER);
 ROOT_FOLDER.addNode(DOWNLOADS_FOLDER);
 
-// /desktop/file.txt -> "Hello, world!"
+// /desktop/texts -> "texts"
+let texts = new Node("texts", true);
+DESKTOP_FOLDER.addNode(texts);
+
+// /desktop/texts/text1.txt -> "Text 1!"
+let text1 = new Node("text1.txt");
+text1.addContent("Text 1!");
+texts.addNode(text1);
+
+// /desktop/credits.txt -> "https://github.com/manueldealba"
 let file = new Node("credits.txt");
 file.addContent("https://github.com/manueldealba");
 DESKTOP_FOLDER.addNode(file);

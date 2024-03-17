@@ -1,7 +1,9 @@
+import * as Desktop from "./Desktop.js";
 import * as Explorer from "./Explorer.js";
 import * as Terminal from "./Terminal.js";
 import { clamp } from "./utils.js";
 
+const desktop = document.querySelector(".desktop");
 const explorer = document.querySelector(".explorer");
 const folders = explorer.querySelector(".folders");
 
@@ -122,6 +124,32 @@ actionOnClick({
         if(clickedWindow.matches(".terminal")){
             const result = Terminal.reset();
             clickedWindow.querySelector(".text").innerHTML = result.map(line => `<p>${line}</p>`).join("");
+        } else if(clickedWindow.matches(".explorer")){
+            Explorer.reset();
+            folders.innerHTML = Explorer.generateExplorer();
+        }
+    }
+})
+
+// Desktop actions
+actionOnClick({
+    selector: ".desktop .element",
+    callback: (e, target) => {
+        const path = target.dataset.path;
+
+        if(target.matches(".file")){
+            // If the target is a file, show the content
+            const { name, path:filePath, content } = Explorer.readFile(path);
+            alert(`Name: ${name}\nPath: ${filePath}\nContent:\n${content}`);
+        } else {
+            // Open the explorer in the selected directory
+            explorer.classList.remove("hidden");
+            Explorer.changeDirectory(path);
+
+            // Bring the window to the front
+            const windows = document.querySelectorAll(".window");
+            windows.forEach(w => w.classList.remove("active"));
+            explorer.classList.add("active");
         }
     }
 })
@@ -132,11 +160,12 @@ actionOnClick({
     callback: (e, target) => {
         const path = target.dataset.path;
         
-        // If the target is a file, don't do anything
         if(target.matches(".file")){
+            // If the target is a file, show the content
             const { name, path:filePath, content } = Explorer.readFile(path);
             alert(`Name: ${name}\nPath: ${filePath}\nContent: ${content}`);
         } else {
+            // If the target is a directory, change the current directory
             Explorer.changeDirectory(path);
             folders.innerHTML = Explorer.generateExplorer();
         }
@@ -158,9 +187,6 @@ actionOnClick({
         folders.innerHTML = Explorer.generateExplorer();
     }
 })
-
-const backBtn = document.querySelector(".back");
-const forwardBtn = document.querySelector(".forward");
 
 // Terminal actions
 actionOnClick({
@@ -293,12 +319,13 @@ window.addEventListener("keydown", e => {
 })
 
 window.addEventListener("load", () => {
+    desktop.innerHTML = Desktop.generateDesktop();
     folders.innerHTML = Explorer.generateExplorer();
     terminal.querySelector(".input-bar .pre-input").innerHTML = Terminal.getPreInput() + "$";
 })
 
 function loop(){
+    desktop.innerHTML = Desktop.generateDesktop();
     folders.innerHTML = Explorer.generateExplorer();
-    requestAnimationFrame(loop);
 }
-loop();
+setInterval(loop, 100);
