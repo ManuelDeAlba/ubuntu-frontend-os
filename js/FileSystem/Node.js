@@ -1,7 +1,7 @@
 class Node {
     constructor(name, isDir=false) {
         this.parent = null;
-        this.path = "/" + name;
+        this.path = name == "root" ? "/" : `/${name}`;
         this.name = name;
         this.isDir = isDir;
         this.content = null;
@@ -45,7 +45,9 @@ class Node {
     }
 
     updatePath(){
-        if(this.parent) this.path = this.parent.path + "/" + this.name;
+        if(this.parent && this.name != "root") this.path = this.parent.path + "/" + this.name;
+        // If the parent is the root, remove the first "/"
+        this.path = this.path.replaceAll("//", "/");
     }
 
     getPath(){
