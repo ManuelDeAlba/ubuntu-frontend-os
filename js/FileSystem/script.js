@@ -3,13 +3,29 @@ import Node from './Node.js';
 //? DEFAULT FOLDERS AND FILES
 export const ROOT_FOLDER = new Node("root", true);
 
-const folder1 = new Node("folder1", true);
-let file = new Node("file.txt");
-file.addContent("Hello, world!");
-ROOT_FOLDER.addNode(folder1);
-ROOT_FOLDER.addNode(file);
-folder1.addNode(new Node("file2.txt"));
-folder1.addNode(new Node("folder2", true));
+export const HOME_FOLDER = new Node("home", true);
+export const DESKTOP_FOLDER = new Node("desktop", true);
+export const DOCUMENTS_FOLDER = new Node("documents", true);
+export const DOWNLOADS_FOLDER = new Node("downloads", true);
+ROOT_FOLDER.addNode(HOME_FOLDER);
+ROOT_FOLDER.addNode(DESKTOP_FOLDER);
+ROOT_FOLDER.addNode(DOCUMENTS_FOLDER);
+ROOT_FOLDER.addNode(DOWNLOADS_FOLDER);
+
+// /desktop/file.txt -> "Hello, world!"
+let file = new Node("credits.txt");
+file.addContent("https://github.com/manueldealba");
+DESKTOP_FOLDER.addNode(file);
+
+// /documents/file2.txt -> "File 2!"
+let file2 = new Node("file2.txt");
+file2.addContent("File 2!");
+DOCUMENTS_FOLDER.addNode(file2);
+
+// /downloads/download.txt -> "Super secret text :o"
+let downloadedFile = new Node("download.txt");
+downloadedFile.addContent("Super secret text :o");
+DOWNLOADS_FOLDER.addNode(downloadedFile);
 
 class FileSystemError extends Error {
     constructor({ code, message }){
