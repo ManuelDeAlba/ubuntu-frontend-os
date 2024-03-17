@@ -1,4 +1,5 @@
 import Node from "./FileSystem/Node.js";
+import * as FileSystem from "./FileSystem/script.js";
 import { ROOT_FOLDER } from "./FileSystem/script.js";
 
 class TerminalError extends Error {
@@ -11,8 +12,6 @@ class TerminalError extends Error {
 
 const TERMINAL_ERRORS = {
     PROCESS_FINISHED: new TerminalError({ code: 0, message: "Process finished with exit code 0" }),
-    INEXISTENT_NODE: (name) => new TerminalError({ code: "terminal/inexistent-node", message: `No such file or directory: ${name}` }),
-    NOT_DIRECTORY: (name) => new TerminalError({ code: "terminal/not-directory", message: `Not a directory: ${name}` }),
 }
 
 let user = "user";
@@ -288,7 +287,7 @@ export function mv(commandArguments){
     // node -> renamedNode
     if(!destinationNode){
         if(sourceNode.name === "root") return "Cannot rename root directory";
-        
+
         prevPath = sourceNode.path;
 
         const { isAbsolute, dirname, basename: newName } = parsePath(destination);
@@ -355,35 +354,16 @@ export function getPreInput(){
     return `<span style="color: lightgreen;">${user}@ubuntu</span>:<span style="color: lightblue;">${pwd()}</span>`;
 }
 
-export function getNodeFromPath(path, { onlyDirectory=false }={}){
-    const segments = path.split("/");
-    let aux = path.startsWith("/") ? ROOT_FOLDER : currentDirectory;
+export function getNodeFromPath(path){
+    return FileSystem.getNodeFromPath(path, { currentDirectory });
+}
 
-    segments.forEach(segment => {
-        if(!segment || segment === ".") return;
-        if(segment === "..") {
-            // If there is a parent, navigate to it
-            // Otherwise, stay in the same directory
-            if (aux.parent) aux = aux.parent;
-        } else {
-            // Search a node with the name of the segment
-            const node = aux.findNode(segment);
-
-            // If the node does not exist, throw an error
-            if (!node) throw TERMINAL_ERRORS.INEXISTENT_NODE(segment);
-
-            // If the node is not a directory and onlyDirectory is true, throw an error
-            if(onlyDirectory && !node.isDir) throw TERMINAL_ERRORS.NOT_DIRECTORY(segment);
-
-            aux = node;
-        }
-    })
-
-    return aux;
+export function getFileFromPath(path){
+    return FileSystem.getFileFromPath(path, { currentDirectory });
 }
 
 export function getDirectoryFromPath(path){
-    return getNodeFromPath(path, { onlyDirectory: true });
+    return FileSystem.getDirectoryFromPath(path, { currentDirectory });
 }
 
 export function parseCommand(command){
