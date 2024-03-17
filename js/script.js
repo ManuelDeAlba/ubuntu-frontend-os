@@ -1,7 +1,10 @@
+import * as Explorer from "./Explorer.js";
 import * as Terminal from "./Terminal.js";
 import { clamp } from "./utils.js";
 
 const explorer = document.querySelector(".explorer");
+const folders = explorer.querySelector(".folders");
+
 const terminal = document.querySelector(".terminal");
 
 let dragInfo = {
@@ -122,6 +125,42 @@ actionOnClick({
         }
     }
 })
+
+// Explorer actions
+actionOnClick({
+    selector: ".folder",
+    callback: (e, target) => {
+        const path = target.dataset.path;
+        
+        // If the target is a file, don't do anything
+        if(target.matches(".file")){
+            const { name, path:filePath, content } = Explorer.readFile(path);
+            alert(`Name: ${name}\nPath: ${filePath}\nContent: ${content}`);
+        } else {
+            Explorer.changeDirectory(path);
+            folders.innerHTML = Explorer.generateExplorer();
+        }
+    }
+})
+
+actionOnClick({
+    selector: ".back",
+    callback: () => {
+        Explorer.goBack();
+        folders.innerHTML = Explorer.generateExplorer();
+    }
+})
+
+actionOnClick({
+    selector: ".forward",
+    callback: () => {
+        Explorer.goForward();
+        folders.innerHTML = Explorer.generateExplorer();
+    }
+})
+
+const backBtn = document.querySelector(".back");
+const forwardBtn = document.querySelector(".forward");
 
 // Terminal actions
 actionOnClick({
@@ -254,5 +293,12 @@ window.addEventListener("keydown", e => {
 })
 
 window.addEventListener("load", () => {
+    folders.innerHTML = Explorer.generateExplorer();
     terminal.querySelector(".input-bar .pre-input").innerHTML = Terminal.getPreInput() + "$";
 })
+
+function loop(){
+    folders.innerHTML = Explorer.generateExplorer();
+    requestAnimationFrame(loop);
+}
+loop();

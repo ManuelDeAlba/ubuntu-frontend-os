@@ -121,7 +121,7 @@ body{
   color: #fff;
   cursor: move;
 
-  .tools > *, .actions > * {
+  .navigation > *, .tools > *, .actions > * {
     cursor: pointer;
   }
   
