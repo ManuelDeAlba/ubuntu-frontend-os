@@ -10,12 +10,8 @@ export function changeDirectory(path){
     const newDirectory = FileSystem.getDirectoryFromPath(path, { currentDirectory })
     currentDirectory = newDirectory;
 
-    // If the new directory is the same as the current one, don't add it to the history
-    // But still update the index to go back to it
-    if(navigationHistory[navigationIndex+1]?.path == path){
-        navigationIndex++;
-        return;
-    }
+    // Delete all the directories ahead of the current index
+    navigationHistory = navigationHistory.slice(0, navigationIndex + 1);
 
     // Save the previous directories
     navigationHistory.push(newDirectory);
