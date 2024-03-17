@@ -26,6 +26,14 @@ class Node {
         return this.children.find((child) => child.name === name);
     }
 
+    findFile(name){
+        return this.children.find((child) => child.name === name && !child.isDir);
+    }
+
+    findDirectory(name){
+        return this.children.find((child) => child.name === name && child.isDir);
+    }
+
     addNode(node) {
         this.children.push(node);
         node.setParent(this);
