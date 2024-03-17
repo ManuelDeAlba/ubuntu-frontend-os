@@ -15,9 +15,9 @@ export function generateDesktop(){
     });
 
     sortedFiles.forEach((child) => {
-        let srcIcon = child.isDir ? "/img/folder.webp" : "/img/file.webp"
+        let srcIcon = child.isDir ? "/img/folder.webp" : "/img/file.webp";
         elements += `
-            <div class="element ${!child.isDir ? "file" : ""}" data-path="${child.path}">
+            <div class="element ${!child.isDir ? "file" : ""}" data-path="${child.path}" title='${child.name}'>
                 <img src=${srcIcon} class=${child.isDir ? "" : "color-reverse"}>
                 <span>${child.name}</span>
             </div>
