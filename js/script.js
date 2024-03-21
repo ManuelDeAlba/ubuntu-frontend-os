@@ -22,6 +22,12 @@ let dragInfo = {
     relativeY: undefined
 }
 
+function renderExplorer(){
+    let {folders: directories, currentDirectory} = Explorer.generateExplorer();
+    folders.innerHTML = directories;
+    folders.closest(".window").querySelector(".current-folder").textContent = currentDirectory;
+}
+
 //! ACTIONS
 let clickActions = [];
 let submitActions = [];
@@ -126,7 +132,7 @@ actionOnClick({
             clickedWindow.querySelector(".text").innerHTML = result.map(line => `<p>${line}</p>`).join("");
         } else if(clickedWindow.matches(".explorer")){
             Explorer.reset();
-            folders.innerHTML = Explorer.generateExplorer();
+            renderExplorer();
         }
     }
 })
@@ -167,7 +173,7 @@ actionOnClick({
         } else {
             // If the target is a directory, change the current directory
             Explorer.changeDirectory(path);
-            folders.innerHTML = Explorer.generateExplorer();
+            renderExplorer();
         }
     }
 })
@@ -176,7 +182,7 @@ actionOnClick({
     selector: ".back",
     callback: () => {
         Explorer.goBack();
-        folders.innerHTML = Explorer.generateExplorer();
+        renderExplorer();
     }
 })
 
@@ -184,7 +190,7 @@ actionOnClick({
     selector: ".forward",
     callback: () => {
         Explorer.goForward();
-        folders.innerHTML = Explorer.generateExplorer();
+        renderExplorer();
     }
 })
 
@@ -320,12 +326,12 @@ window.addEventListener("keydown", e => {
 
 window.addEventListener("load", () => {
     desktop.innerHTML = Desktop.generateDesktop();
-    folders.innerHTML = Explorer.generateExplorer();
+    renderExplorer();
     terminal.querySelector(".input-bar .pre-input").innerHTML = Terminal.getPreInput() + "$";
 })
 
 function loop(){
     desktop.innerHTML = Desktop.generateDesktop();
-    folders.innerHTML = Explorer.generateExplorer();
+    renderExplorer();
 }
 setInterval(loop, 100);

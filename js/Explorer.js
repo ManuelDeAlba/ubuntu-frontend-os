@@ -58,10 +58,13 @@ export function generateExplorer(path=currentDirectory.path){
                 <img src=${srcIcon}>
                 <span>${child.name}</span>
             </div>
-        `;
+        `.trim();
     });
 
-    return folders;
+    return {
+        currentDirectory: currentDirectory.path,
+        folders
+    }
 }
 
 export function getNodeFromPath(path){
