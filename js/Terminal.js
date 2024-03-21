@@ -33,6 +33,7 @@ let commands = {
             - rm [file]: Remove the specified file or directory<br>
             - history: Print the command history<br>
             - user [name]: Change the current user to the specified name<br>
+            - copy: Copy the last output in the console<br>
         `);
     },
     "pwd": () => {
@@ -78,12 +79,13 @@ let commands = {
     "exit": () => {
         throw TERMINAL_ERRORS.PROCESS_FINISHED;
     },
+    "copy": () => {
+        text.push(copyOutput());
+    },
 }
 
 export const defaultText = [
-    "Welcome to Ubuntu",
-    "Type 'help' to see a list of commands",
-    "Type 'clear' to clear the terminal"
+    "Welcome to Ubuntu<br>Type 'help' to see a list of commands<br>Type 'clear' to clear the terminal",
 ];
 let text = [...defaultText];
 let commandHistory = [];
@@ -321,6 +323,15 @@ export function changeUser(commandArguments){
     const newUser = commandArguments[0] || "user";
     user = newUser;
     return `User changed to ${user}`;
+}
+
+export function copyOutput(){
+    // Select the last output (ignore the text of the command)
+    const lastOutput = text.at(-2).replaceAll(/\s+/g, " ").replaceAll("<br>", "\n");
+
+    navigator.clipboard.writeText(lastOutput);
+
+    return `Last output copied`;
 }
 
 export function execute(command){
