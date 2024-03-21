@@ -374,11 +374,11 @@ export function parseCommand(command){
     words.forEach((word, index) => {
         // If exists a capture group (the match is between quotes)
         if(word[1] != undefined){
-            matches.push(word[1]);
+            matches.push(word[1].trim());
         } else {
             // Convert the command to lowercase
-            if(index == 0) matches.push(word[0].toLowerCase());
-            else matches.push(word[0]);
+            if(index == 0) matches.push(word[0].toLowerCase().trim());
+            else matches.push(word[0].trim());
         }
     })
 
