@@ -350,7 +350,8 @@ export function execute(command){
 
         return text;
     } else {
-        text.push(`${getPreInput()}: ${command} <br> Command not found: ${command}`);
+        text.push(`${getPreInput()}: ${command}`);
+        text.push(`Command not found: ${command}`);
 
         return text;
     }
